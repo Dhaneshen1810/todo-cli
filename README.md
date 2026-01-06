@@ -16,14 +16,16 @@ A simple command-line tool written in Rust for managing a list of todos.
 ````bash
 git clone https://github.com/Dhaneshen1810/todo-cli.git
 cd todo-cli
+```
 
 ## 🛠️ Usage
 
 ### Add a Todo
 Add a new todo by passing the todo text as an argument:
-
+E.g
 ```bash
 cargo run -- "My todo"
+```
 
 ### List all todos
 
