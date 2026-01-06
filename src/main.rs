@@ -47,7 +47,7 @@ struct Todo {
 impl Todo {
     fn new(todo: String) -> Todo {
         Todo {
-            id: String::from("1"),
+            id: String::from("2"),
             name: todo,
             created_at: Utc::now().to_string(),
         }
@@ -55,25 +55,43 @@ impl Todo {
 }
 
 fn read_from_file() {
-    println!("Todo list:");
-    let contents =
-        fs::read_to_string("todo-list.json").expect("Should have been able to read the file");
-    let content_str = contents.as_str();
-    let data: Todo = serde_json::from_str(content_str).expect("Invalid JSON");
-    println!("- {}", data.name);
+    match fs::read_to_string("todo-list.json") {
+        Ok(contents) => {
+            println!("Todo list:");
+
+            let content_str = contents.as_str();
+            let data: Vec<Todo> = serde_json::from_str(content_str).expect("Invalid JSON");
+
+            for todo in data {
+                println!("{}. {}", todo.id, todo.name);
+            }
+        }
+        Err(_e) => println!("There is currently no todo."),
+    }
 }
 
 fn write_to_file(todo: String) -> std::io::Result<()> {
     let todo = Todo::new(todo);
+    let mut new_todo_list: Vec<Todo> = get_current_todo_list();
+    new_todo_list.push(todo);
     let file = File::create("todo-list.json")?;
 
-    let todo_json = json!({
-        "id": todo.id,
-        "name": todo.name,
-        "created_at": todo.created_at.to_string()
-    });
+    let todo_json = json!(new_todo_list);
 
     serde_json::to_writer(file, &todo_json)?;
 
     Ok(())
+}
+
+fn get_current_todo_list() -> Vec<Todo> {
+    match fs::read_to_string("todo-list.json") {
+        Ok(content_str) => match serde_json::from_str(&content_str) {
+            Ok(content) => {
+                let current_todo_list: Vec<Todo> = content;
+                current_todo_list
+            }
+            Err(_e) => Vec::new(),
+        },
+        Err(_e) => Vec::new(),
+    }
 }
