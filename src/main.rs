@@ -1,50 +1,58 @@
 use chrono::Utc;
-use clap::Parser;
+use clap::{Args, Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fs;
 use std::fs::File;
 
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    todo: Option<String>,
+#[derive(Parser)]
+#[command(author = "Dhaneshen Moonian", version="0.0.1", about, long_about = None)]
 
-    // list all todos
-    #[arg(short)]
-    l: bool,
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
 
-    #[arg(short)]
-    d: Option<String>,
-    // #[arg(short, long, default_value_t = 1)]
-    // list: u8,
+#[derive(Subcommand)]
+enum Commands {
+    // Add new todo
+    Add(Add),
+    // List all todos
+    List,
+    // Remove todo
+    Rm(Remove),
+}
+
+#[derive(Args)]
+struct Add {
+    string: Option<String>,
+}
+
+#[derive(Args)]
+struct Remove {
+    id: Option<String>,
 }
 
 fn main() -> std::io::Result<()> {
-    let args = Args::parse();
+    let cli = Cli::parse();
 
-    if args.l {
-        read_from_file();
-        return Ok(());
-    }
-
-    if let Some(id) = args.d {
-        match remove_task_by_id(id) {
-            Ok(_result) => {}
-            Err(_e) => {
-                println!("Failed to remove todo.")
-            }
-        };
-        return Ok(());
-    }
-
-    if let Some(todo) = args.todo {
-        match write_to_file(todo) {
-            Ok(()) => println!("Success!"),
-            Err(e) => println!("Failed to write to file: {}", e),
-        };
-    } else {
-        eprintln!("Invalid command.");
+    match &cli.command {
+        Some(Commands::Add(name)) => match &name.string {
+            Some(name) => match add_new_todo(name) {
+                Ok(_) => println!("New todo added."),
+                Err(_e) => println!("Failed to add todo"),
+            },
+            None => println!("Please provide a todo"),
+        },
+        Some(Commands::List) => list_all_todos(),
+        Some(Commands::Rm(todo)) => match &todo.id {
+            Some(id) => match remove_task_by_id(id) {
+                Ok(_) => {}
+                Err(_e) => println!("Failed to remove todo"),
+            },
+            None => println!("Failed to remove todo."),
+        },
+        None => {}
     }
 
     Ok(())
@@ -67,7 +75,7 @@ impl Todo {
     }
 }
 
-fn read_from_file() {
+fn list_all_todos() {
     match fs::read_to_string("todo-list.json") {
         Ok(contents) => {
             println!("Todo list:");
@@ -83,8 +91,8 @@ fn read_from_file() {
     }
 }
 
-fn write_to_file(todo: String) -> std::io::Result<()> {
-    let todo = Todo::new(todo);
+fn add_new_todo(todo: &str) -> std::io::Result<()> {
+    let todo = Todo::new(String::from(todo));
     let mut new_todo_list: Vec<Todo> = get_current_todo_list();
     new_todo_list.push(todo);
     let file = File::create("todo-list.json")?;
@@ -109,7 +117,7 @@ fn get_current_todo_list() -> Vec<Todo> {
     }
 }
 
-fn remove_task_by_id(id: String) -> std::io::Result<()> {
+fn remove_task_by_id(id: &str) -> std::io::Result<()> {
     let current_todo_list = get_current_todo_list();
 
     if current_todo_list.len() <= 0 {
