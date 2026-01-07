@@ -13,6 +13,9 @@ struct Args {
     // list all todos
     #[arg(short)]
     l: bool,
+
+    #[arg(short)]
+    d: Option<String>,
     // #[arg(short, long, default_value_t = 1)]
     // list: u8,
 }
@@ -22,6 +25,16 @@ fn main() -> std::io::Result<()> {
 
     if args.l {
         read_from_file();
+        return Ok(());
+    }
+
+    if let Some(id) = args.d {
+        match remove_task_by_id(id) {
+            Ok(_result) => {}
+            Err(_e) => {
+                println!("Failed to remove todo.")
+            }
+        };
         return Ok(());
     }
 
@@ -37,7 +50,7 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 struct Todo {
     id: String,
     name: String,
@@ -47,7 +60,7 @@ struct Todo {
 impl Todo {
     fn new(todo: String) -> Todo {
         Todo {
-            id: String::from("2"),
+            id: String::from("3"),
             name: todo,
             created_at: Utc::now().to_string(),
         }
@@ -94,4 +107,28 @@ fn get_current_todo_list() -> Vec<Todo> {
         },
         Err(_e) => Vec::new(),
     }
+}
+
+fn remove_task_by_id(id: String) -> std::io::Result<()> {
+    let current_todo_list = get_current_todo_list();
+
+    if current_todo_list.len() <= 0 {
+        println!("Invalid todo id.")
+    }
+
+    let new_todo_list: Vec<Todo> = current_todo_list
+        .iter()
+        .filter(|todo| todo.id != id)
+        .cloned()
+        .collect();
+
+    // Replace todo file
+    let file = File::create("todo-list.json")?;
+
+    let todo_json = json!(new_todo_list);
+
+    serde_json::to_writer(file, &todo_json)?;
+    println!("Todo removed.");
+
+    Ok(())
 }
