@@ -35,3 +35,11 @@ cargo run -- "My todo"
 cargo run -- -l
 
 ```
+
+### Installing project on machine
+
+If you wish to use the app as a proper cli on you machine, you can use the following
+
+```
+cargo install --path . --force
+```
