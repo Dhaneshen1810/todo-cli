@@ -7,9 +7,9 @@ use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Todo {
-    id: String,
-    name: String,
-    created_at: String,
+    pub id: String,
+    pub name: String,
+    pub created_at: String,
 }
 
 impl Todo {
