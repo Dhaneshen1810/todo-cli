@@ -1,5 +1,5 @@
 use clap::{Args, Parser, Subcommand};
-use todo::{add_new_todo, list_all_todos, remove_task_by_id};
+use todo::{add_new_todo, get_current_todo_list, list_all_todos, remove_task_by_id};
 
 #[derive(Parser)]
 #[command(author = "Dhaneshen Moonian", version="0.0.1", about, long_about = None)]
@@ -32,17 +32,19 @@ struct Remove {
 fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
 
+    let mut current_todo_list = get_current_todo_list();
+
     match &cli.command {
         Some(Commands::Add(name)) => match &name.string {
-            Some(name) => match add_new_todo(name) {
+            Some(name) => match add_new_todo(name, &mut current_todo_list) {
                 Ok(_) => println!("New todo added."),
                 Err(_e) => println!("Failed to add todo"),
             },
             None => println!("Please provide a todo"),
         },
-        Some(Commands::List) => list_all_todos(),
+        Some(Commands::List) => list_all_todos(&mut current_todo_list),
         Some(Commands::Rm(todo)) => match &todo.id {
-            Some(id) => match remove_task_by_id(id) {
+            Some(id) => match remove_task_by_id(id, &mut current_todo_list) {
                 Ok(_) => {}
                 Err(_e) => println!("Failed to remove todo"),
             },
