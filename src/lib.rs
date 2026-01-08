@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fs;
 use std::fs::File;
+use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Todo {
@@ -28,7 +29,8 @@ pub fn add_new_todo(todo: &str) -> std::io::Result<()> {
     let todo = Todo::new(new_id, String::from(todo));
 
     new_todo_list.push(todo);
-    let file = File::create("todo-list.json")?;
+    let path = todo_file_path();
+    let file = File::create(path)?;
 
     let todo_json = json!(new_todo_list);
 
@@ -38,7 +40,8 @@ pub fn add_new_todo(todo: &str) -> std::io::Result<()> {
 }
 
 pub fn list_all_todos() {
-    match fs::read_to_string("todo-list.json") {
+    let path = todo_file_path();
+    match fs::read_to_string(path) {
         Ok(contents) => {
             println!("Todo list:");
 
@@ -69,7 +72,8 @@ pub fn remove_task_by_id(id: &str) -> std::io::Result<()> {
     let formatted_todo_list = reset_todo_ids(&mut new_todo_list);
 
     // Replace todo file
-    let file = File::create("todo-list.json")?;
+    let path = todo_file_path();
+    let file = File::create(path)?;
 
     let todo_json = json!(formatted_todo_list);
 
@@ -80,7 +84,8 @@ pub fn remove_task_by_id(id: &str) -> std::io::Result<()> {
 }
 
 pub fn get_current_todo_list() -> Vec<Todo> {
-    match fs::read_to_string("todo-list.json") {
+    let path = todo_file_path();
+    match fs::read_to_string(path) {
         Ok(content_str) => match serde_json::from_str(&content_str) {
             Ok(content) => {
                 let current_todo_list: Vec<Todo> = content;
@@ -99,4 +104,20 @@ pub fn reset_todo_ids(current_todo_list: &mut Vec<Todo>) -> &mut Vec<Todo> {
     }
 
     current_todo_list
+}
+
+fn todo_file_path() -> PathBuf {
+    let home = std::env::var("HOME").expect("HOME directory not set");
+
+    let mut path = PathBuf::from(home);
+    path.push(".local");
+    path.push("share");
+    path.push("cli");
+    path.push("todo");
+
+    // Ensure directories exist
+    fs::create_dir_all(&path).expect("Failed to create todo data directory");
+
+    path.push("todo-list.json");
+    path
 }
