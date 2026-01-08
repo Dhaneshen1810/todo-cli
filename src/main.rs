@@ -124,19 +124,30 @@ fn remove_task_by_id(id: &str) -> std::io::Result<()> {
         println!("Invalid todo id.")
     }
 
-    let new_todo_list: Vec<Todo> = current_todo_list
+    let mut new_todo_list: Vec<Todo> = current_todo_list
         .iter()
         .filter(|todo| todo.id != id)
         .cloned()
         .collect();
 
+    let formatted_todo_list = reset_todo_ids(&mut new_todo_list);
+
     // Replace todo file
     let file = File::create("todo-list.json")?;
 
-    let todo_json = json!(new_todo_list);
+    let todo_json = json!(formatted_todo_list);
 
     serde_json::to_writer(file, &todo_json)?;
     println!("Todo removed.");
 
     Ok(())
+}
+
+fn reset_todo_ids(current_todo_list: &mut Vec<Todo>) -> &mut Vec<Todo> {
+    for (i, todo) in current_todo_list.iter_mut().enumerate() {
+        let new_index = (i + 1) as u16;
+        todo.id = new_index.to_string();
+    }
+
+    current_todo_list
 }
