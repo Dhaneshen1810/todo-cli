@@ -33,19 +33,20 @@ pub fn add_new_todo(todo: &str, current_todo_list: &mut Vec<Todo>) -> std::io::R
 
 pub fn list_all_todos(current_todo_list: &mut Vec<Todo>) {
     if current_todo_list.len() > 0 {
+        println!("\nYou have {} todos:", current_todo_list.len());
         for todo in current_todo_list {
-            println!("{}. {}", todo.id, todo.name);
+            println!("  {}. {}", todo.id, todo.name);
         }
 
         return;
     }
 
-    println!("There is no todo")
+    println!("\nThere is no todo")
 }
 
 pub fn remove_task_by_id(id: &str, current_todo_list: &mut Vec<Todo>) -> std::io::Result<()> {
     if current_todo_list.len() <= 0 {
-        println!("Invalid todo id.")
+        println!("\nInvalid todo id")
     }
 
     let mut new_todo_list: Vec<Todo> = current_todo_list

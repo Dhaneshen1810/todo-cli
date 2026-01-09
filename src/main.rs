@@ -37,7 +37,7 @@ fn main() -> std::io::Result<()> {
     match &cli.command {
         Some(Commands::Add(name)) => match &name.string {
             Some(name) => match add_new_todo(name, &mut current_todo_list) {
-                Ok(_) => println!("New todo added."),
+                Ok(_) => println!("\nNew todo added"),
                 Err(_e) => println!("Failed to add todo"),
             },
             None => println!("Please provide a todo"),
